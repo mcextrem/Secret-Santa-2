@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Santa Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CryptoJS Bibliothek für AES Verschlüsselung -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lobster&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fancy-font {
+            font-family: 'Lobster', cursive;
+        }
+        /* Kleine Animation für das Einblenden */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Container für beide Ansichten -->
+    <div class="w-full max-w-md mx-auto">
+
+        <!-- Generator-Ansicht -->
+        <div id="generator-view" class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold text-red-600 fancy-font">Secret Santa</h1>
+                <p class="text-gray-500 mt-2">Persönliche Links für die Auslosung erstellen.</p>
+            </div>
+
+            <div class="mb-6">
+                <label for="names" class="block text-sm font-medium text-gray-700 mb-2">Gib die Namen ein (einen pro Zeile):</label>
+                <textarea id="names" rows="8" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition duration-150 ease-in-out" placeholder="z.B.&#10;Anna&#10;Ben&#10;Clara&#10;David"></textarea>
+                <p id="error-message" class="text-red-500 text-sm mt-2 hidden">Bitte gib mindestens 3 Namen ein.</p>
+            </div>
+
+            <button id="generate-button" class="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300 transition-transform transform hover:scale-105 duration-200 ease-in-out">
+                Geheime Links erstellen!
+            </button>
+
+            <div id="results" class="mt-8 hidden">
+                <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Fertig!</h2>
+                <p class="text-center text-gray-600 mb-6">Kopiere die Links und sende sie an die richtigen Personen.</p>
+                <div id="links-container" class="space-y-3">
+                    <!-- Links werden hier per JavaScript eingefügt -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Enthüllungs-Ansicht -->
+        <div id="reveal-view" class="hidden bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center fade-in">
+            <svg class="mx-auto h-16 w-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1012 10.125A2.625 2.625 0 0012 4.875zM12 12.75c-1.892 0-3.68.74-4.956 2.022A6.75 6.75 0 0012 21a6.75 6.75 0 004.956-6.228A6.812 6.812 0 0012 12.75z" />
+            </svg>
+            <h1 id="reveal-greeting" class="text-2xl md:text-3xl font-bold text-gray-800 mt-4">Hallo [Name]!</h1>
+            <p class="text-gray-600 mt-2">Du bist der Secret Santa für:</p>
+            <div class="mt-6 bg-green-100 border-2 border-dashed border-green-300 rounded-lg p-4">
+                <p id="reveal-receiver" class="text-3xl md:text-4xl font-bold text-green-700 fancy-font">[Partner]</p>
+            </div>
+            <p class="mt-8 text-sm text-gray-500">Psst... Behalte es für dich!</p>
+             <a href="#" onclick="window.location.pathname = window.location.pathname; return false;" class="mt-6 inline-block bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200">Zurück zur Startseite</a>
+        </div>
+
+    </div>
+
+    <script>
+        // Ansichten und Elemente
+        const generatorView = document.getElementById('generator-view');
+        const revealView = document.getElementById('reveal-view');
+        const generateButton = document.getElementById('generate-button');
+        const namesTextarea = document.getElementById('names');
+        const resultsDiv = document.getElementById('results');
+        const linksContainer = document.getElementById('links-container');
+        const errorMessage = document.getElementById('error-message');
+
+        // Geheimer Schlüssel für die Ver- und Entschlüsselung.
+        const SECRET_KEY = "EinSuperGeheimerSchluesselFuerWichtelSpass!";
+
+        // --- VERSCHLÜSSELUNGSFUNKTIONEN ---
+        function encrypt(data) {
+            const jsonString = JSON.stringify(data);
+            const ciphertext = CryptoJS.AES.encrypt(jsonString, SECRET_KEY).toString();
+            return encodeURIComponent(ciphertext);
+        }
+
+        function decrypt(ciphertext) {
+            try {
+                const decodedCiphertext = decodeURIComponent(ciphertext);
+                const bytes = CryptoJS.AES.decrypt(decodedCiphertext, SECRET_KEY);
+                const originalText = bytes.toString(CryptoJS.enc.Utf8);
+                return JSON.parse(originalText);
+            } catch (e) {
+                console.error("Entschlüsselung fehlgeschlagen:", e);
+                return null;
+            }
+        }
+
+        // --- SEITENLOGIK ---
+        window.addEventListener('load', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const decryptedData = decrypt(hash);
+                if (decryptedData && decryptedData.giver && decryptedData.receiver) {
+                    generatorView.classList.add('hidden');
+                    revealView.classList.remove('hidden');
+                    document.getElementById('reveal-greeting').textContent = `Hallo ${decryptedData.giver}!`;
+                    document.getElementById('reveal-receiver').textContent = decryptedData.receiver;
+                } else {
+                    generatorView.classList.remove('hidden');
+                    revealView.classList.add('hidden');
+                }
+            } else {
+                generatorView.classList.remove('hidden');
+                revealView.classList.add('hidden');
+            }
+        });
+        
+        generateButton.addEventListener('click', () => {
+            const names = namesTextarea.value
+                .split('\n')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            
+            errorMessage.classList.add('hidden');
+
+            if (names.length < 3) {
+                errorMessage.classList.remove('hidden');
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            const pairings = generatePairings(names);
+            displayLinks(pairings);
+            resultsDiv.classList.remove('hidden');
+        });
+
+        function generatePairings(names) {
+            let givers = [...names];
+            let receivers = [...names];
+            let pairings = {};
+            let success = false;
+
+            while(!success) {
+                for (let i = receivers.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [receivers[i], receivers[j]] = [receivers[j], receivers[i]];
+                }
+
+                let isInvalid = false;
+                for (let i = 0; i < givers.length; i++) {
+                    if (givers[i] === receivers[i]) {
+                        isInvalid = true;
+                        break;
+                    }
+                }
+                
+                if (!isInvalid) {
+                    success = true;
+                }
+            }
+            
+            for (let i = 0; i < givers.length; i++) {
+                pairings[givers[i]] = receivers[i];
+            }
+
+            return pairings;
+        }
+
+        function displayLinks(pairings) {
+            linksContainer.innerHTML = '';
+            const givers = Object.keys(pairings).sort();
+            const baseUrl = window.location.href.split('#')[0];
+
+            givers.forEach(giver => {
+                const receiver = pairings[giver];
+                const dataToEncrypt = { giver: giver, receiver: receiver };
+                const encryptedData = encrypt(dataToEncrypt);
+                const linkUrl = `${baseUrl}#${encryptedData}`;
+
+                const linkElement = document.createElement('div');
+                linkElement.className = 'flex items-center justify-between p-3 bg-gray-50 border rounded-lg';
+                
+                const nameLabel = document.createElement('p');
+                nameLabel.className = 'font-semibold text-gray-800';
+                nameLabel.textContent = `Link für ${giver}:`;
+                
+                const copyButton = document.createElement('button');
+                copyButton.className = 'bg-gray-200 text-gray-800 text-sm font-bold py-2 px-3 rounded-md hover:bg-gray-300 transition duration-150';
+                copyButton.textContent = 'Kopieren';
+                
+                copyButton.onclick = () => {
+                    navigator.clipboard.writeText(linkUrl).then(() => {
+                        copyButton.textContent = 'Kopiert!';
+                        copyButton.classList.add('bg-green-500', 'text-white');
+                        setTimeout(() => {
+                           copyButton.textContent = 'Kopieren';
+                           copyButton.classList.remove('bg-green-500', 'text-white');
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Fehler beim Kopieren: ', err);
+                        const textArea = document.createElement("textarea");
+                        textArea.value = linkUrl;
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        try {
+                            document.execCommand('copy');
+                            copyButton.textContent = 'Kopiert!';
+                        } catch (err) {
+                            console.error('Fallback-Kopieren fehlgeschlagen', err);
+                        }
+                        document.body.removeChild(textArea);
+                    });
+                };
+                
+                linkElement.appendChild(nameLabel);
+                linkElement.appendChild(copyButton);
+                linksContainer.appendChild(linkElement);
+            });
+        }
+    </script>
+</body>
+</html>
+
