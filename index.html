@@ -1,225 +1,92 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adventskalender Auslosung</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- CryptoJS Bibliothek für AES Verschlüsselung -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lobster&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .fancy-font {
-            font-family: 'Lobster', cursive;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adventskalender-Wichteln | Admin</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <div class="w-full max-w-md mx-auto">
-        <!-- Generator-Ansicht -->
-        <div id="generator-view" class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-            <div class="text-center mb-8">
-                <h1 class="text-4xl md:text-5xl font-bold text-red-600 fancy-font">Adventskalender</h1>
-                <p class="text-gray-500 mt-2">Wer beschenkt wen? Erstelle hier die geheimen Links.</p>
-            </div>
+  <div class="container">
+    <h1>🎄 Adventskalender-Wichteln</h1>
+    <p class="subtitle">Erstelle individuelle Wichtel-Links für deine Gruppe. Jeder Teilnehmer erstellt für eine andere Person einen Adventskalender.</p>
 
-            <div class="mb-6">
-                <label for="names" class="block text-sm font-medium text-gray-700 mb-2">Gib die Namen ein (einen pro Zeile):</label>
-                <textarea id="names" rows="8" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition duration-150 ease-in-out" placeholder="z.B.&#10;Anna&#10;Ben&#10;Clara&#10;David"></textarea>
-                <p id="error-message" class="text-red-500 text-sm mt-2 hidden">Bitte gib mindestens 3 Namen ein.</p>
-            </div>
+    <label for="participants" style="display:block; text-align:left; margin-bottom:8px; font-weight:bold;">
+      Teilnehmerliste (ein Name pro Zeile):
+    </label>
+    <textarea id="participants" placeholder="Anna&#10;Ben&#10;Clara&#10;David&#10;Emma"></textarea>
 
-            <button id="generate-button" class="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300 transition-transform transform hover:scale-105 duration-200 ease-in-out">
-                Geheime Links erstellen!
-            </button>
+    <button class="btn-primary" id="generate-btn">🎁 Auslosen & Links generieren</button>
 
-            <div id="results" class="mt-8 hidden">
-                <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Fertig!</h2>
-                <p class="text-center text-gray-600 mb-6">Kopiere die Links und sende sie an die richtigen Personen.</p>
-                <div id="links-container" class="space-y-3">
-                    <!-- Links werden hier per JavaScript eingefügt -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Enthüllungs-Ansicht -->
-        <div id="reveal-view" class="hidden bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center fade-in">
-             <svg class="mx-auto h-16 w-16 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.25 2.25a3 3 0 00-3 3v10.5a3 3 0 003 3h13.5a3 3 0 003-3V5.25a3 3 0 00-3-3H5.25zm.75 10.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5H6zm8.25-3.75a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75V9zm.75 3.75a.75.75 0 000 1.5h.01a.75.75 0 000-1.5H15zm-3.75.75a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01z" clip-rule="evenodd" />
-            </svg>
-            <h1 id="reveal-greeting" class="text-2xl md:text-3xl font-bold text-gray-800 mt-4">Hallo [Name]!</h1>
-            <p id="reveal-year-info" class="text-gray-500 mt-1"></p>
-            <p class="text-gray-600 mt-4">Du bereitest den Adventskalender für:</p>
-            <div class="mt-4 bg-green-100 border-2 border-dashed border-green-300 rounded-lg p-4">
-                <p id="reveal-receiver" class="text-3xl md:text-4xl font-bold text-green-700 fancy-font">[Partner]</p>
-            </div>
-            <p class="mt-8 text-sm text-gray-500">Psst... Behalte es für dich!</p>
-             <a href="#" onclick="window.location.href = window.location.href.split('#')[0]; return false;" class="mt-6 inline-block bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200">Zurück zur Startseite</a>
-        </div>
+    <div id="results" class="results-list" style="display:none;">
+      <h2 style="color: var(--accent-gold); font-size:1.3rem;">Generierte Links</h2>
+      <p style="font-size:0.9rem; color:#d1d8e0;">Kopiere die Links und sende jedem Teilnehmer seinen persönlichen Link.</p>
+      <div id="links-container"></div>
     </div>
+  </div>
 
-    <script>
-        const generatorView = document.getElementById('generator-view');
-        const revealView = document.getElementById('reveal-view');
-        const generateButton = document.getElementById('generate-button');
-        const namesTextarea = document.getElementById('names');
-        const resultsDiv = document.getElementById('results');
-        const linksContainer = document.getElementById('links-container');
-        const errorMessage = document.getElementById('error-message');
-        const SECRET_KEY = "EinSuperGeheimerSchluesselFuerAdventskalender!";
+  <script src="SecretSanta.js"></script>
+  <script>
+    // Schneefall-Effekt erzeugen
+    function createSnow() {
+      for (let i = 0; i < 30; i++) {
+        const flake = document.createElement('div');
+        flake.className = 'snowflake';
+        flake.innerHTML = '❄';
+        flake.style.left = Math.random() * 100 + 'vw';
+        flake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        flake.style.opacity = Math.random();
+        flake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+        document.body.appendChild(flake);
+      }
+    }
+    createSnow();
 
-        // --- ENCRYPTION/DECRYPTION FUNCTIONS ---
-        function encrypt(text) {
-            return CryptoJS.AES.encrypt(text, SECRET_KEY).toString();
+    document.getElementById('generate-btn').addEventListener('click', async () => {
+      const rawText = document.getElementById('participants').value;
+      const names = rawText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+
+      if (names.length < 2) {
+        alert("Bitte gib mindestens 2 Namen ein.");
+        return;
+      }
+
+      try {
+        const pairings = generatePairings(names);
+        const baseUrl = window.location.href.replace(/index\.html$/, '').split('#')[0] + 'pairing.html';
+        const container = document.getElementById('links-container');
+        container.innerHTML = '';
+
+        for (const pair of pairings) {
+          const encryptedPayload = await encryptPairing(pair.giver, pair.receiver);
+          const fullLink = `${baseUrl}#${encryptedPayload}`;
+
+          const item = document.createElement('div');
+          item.className = 'result-item';
+          item.innerHTML = `
+            <span class="result-name">Für ${pair.giver}:</span>
+            <button class="btn-copy" onclick="copyToClipboard('${fullLink}', this)">📋 Link kopieren</button>
+          `;
+          container.appendChild(item);
         }
 
-        function decrypt(ciphertext) {
-            try {
-                const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
-                return bytes.toString(CryptoJS.enc.Utf8);
-            } catch (e) {
-                console.error("Decryption failed:", e);
-                return null;
-            }
-        }
+        document.getElementById('results').style.display = 'block';
+      } catch (err) {
+        alert("Fehler bei der Auslosung: " + err.message);
+      }
+    });
 
-        // --- PAGE LOGIC ---
-        window.addEventListener('load', () => {
-            const hash = window.location.hash.substring(1);
-            if (hash) {
-                // New URL structure: YEAR/GIVER/ENCRYPTED_RECEIVER
-                const parts = hash.split('/');
-                if (parts.length === 3) {
-                    const year = parts[0];
-                    const giver = decodeURIComponent(parts[1]);
-                    const encryptedReceiver = parts[2];
-                    
-                    const receiver = decrypt(encryptedReceiver);
-                    
-                    if (receiver) {
-                        generatorView.classList.add('hidden');
-                        revealView.classList.remove('hidden');
-                        document.getElementById('reveal-greeting').textContent = `Hallo ${giver}!`;
-                        document.getElementById('reveal-year-info').textContent = `Deine Auslosung für den Adventskalender ${year}.`;
-                        document.getElementById('reveal-receiver').textContent = receiver;
-                        return;
-                    }
-                }
-            }
-            // Fallback to generator view if hash is invalid or not present
-            generatorView.classList.remove('hidden');
-            revealView.classList.add('hidden');
-        });
-        
-        generateButton.addEventListener('click', () => {
-            const names = namesTextarea.value
-                .split('\n')
-                .map(name => name.trim())
-                .filter(name => name.length > 0);
-            
-            errorMessage.classList.add('hidden');
-
-            if (names.length < 3) {
-                errorMessage.classList.remove('hidden');
-                resultsDiv.classList.add('hidden');
-                return;
-            }
-
-            const pairings = generatePairings(names);
-            displayLinks(pairings);
-            resultsDiv.classList.remove('hidden');
-        });
-
-        function generatePairings(names) {
-            let givers = [...names];
-            let receivers = [...names];
-            let pairings = {};
-            let success = false;
-
-            // Shuffle until no one gets themselves
-            while(!success) {
-                for (let i = receivers.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [receivers[i], receivers[j]] = [receivers[j], receivers[i]];
-                }
-
-                let isInvalid = false;
-                for (let i = 0; i < givers.length; i++) {
-                    if (givers[i] === receivers[i]) {
-                        isInvalid = true;
-                        break;
-                    }
-                }
-                
-                if (!isInvalid) {
-                    success = true;
-                }
-            }
-            
-            for (let i = 0; i < givers.length; i++) {
-                pairings[givers[i]] = receivers[i];
-            }
-
-            return pairings;
-        }
-
-        function displayLinks(pairings) {
-            linksContainer.innerHTML = '';
-            const givers = Object.keys(pairings).sort();
-            const baseUrl = window.location.href.split('#')[0];
-            const currentYear = new Date().getFullYear();
-
-            givers.forEach(giver => {
-                const receiver = pairings[giver];
-                // Only encrypt the receiver's name
-                const encryptedReceiver = encrypt(receiver);
-                // URL-encode the giver's name in case it contains special characters
-                const encodedGiver = encodeURIComponent(giver);
-                
-                // Build the new URL
-                const linkUrl = `${baseUrl}#${currentYear}/${encodedGiver}/${encryptedReceiver}`;
-
-                const linkElement = document.createElement('div');
-                linkElement.className = 'flex items-center justify-between p-3 bg-gray-50 border rounded-lg';
-                
-                const nameLabel = document.createElement('p');
-                nameLabel.className = 'font-semibold text-gray-800 truncate pr-2';
-                nameLabel.textContent = `Link für ${giver}:`;
-                
-                const copyButton = document.createElement('button');
-                copyButton.className = 'bg-gray-200 text-gray-800 text-sm font-bold py-2 px-3 rounded-md hover:bg-gray-300 transition duration-150 flex-shrink-0';
-                copyButton.textContent = 'Kopieren';
-                
-                copyButton.onclick = () => {
-                    navigator.clipboard.writeText(linkUrl).then(() => {
-                        copyButton.textContent = 'Kopiert!';
-                        copyButton.classList.add('bg-green-500', 'text-white');
-                        setTimeout(() => {
-                           copyButton.textContent = 'Kopieren';
-                           copyButton.classList.remove('bg-green-500', 'text-white');
-                        }, 2000);
-                    }).catch(err => console.error('Fehler beim Kopieren: ', err));
-                };
-                
-                linkElement.appendChild(nameLabel);
-                linkElement.appendChild(copyButton);
-                linksContainer.appendChild(linkElement);
-            });
-        }
-    </script>
+    function copyToClipboard(text, btnElement) {
+      navigator.clipboard.writeText(text).then(() => {
+        const origText = btnElement.innerText;
+        btnElement.innerText = "✓ Kopiert!";
+        btnElement.style.background = "#27ae60";
+        setTimeout(() => {
+          btnElement.innerText = origText;
+        }, 2000);
+      });
+    }
+  </script>
 </body>
 </html>
-
