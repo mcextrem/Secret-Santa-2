@@ -1,4 +1,32 @@
-<script src="SecretSanta.js"></script>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adventskalender-Wichteln | Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>🎄 Adventskalender-Wichteln</h1>
+    <p class="subtitle">Erstelle individuelle Wichtel-Links für deine Gruppe. Jeder Teilnehmer erstellt für eine andere Person einen Adventskalender.</p>
+
+    <label for="participants" style="display:block; text-align:left; margin-bottom:8px; font-weight:bold;">
+      Teilnehmerliste (ein Name pro Zeile):
+    </label>
+    <textarea id="participants" placeholder="Anna&#10;Ben&#10;Clara&#10;David&#10;Emma"></textarea>
+
+    <button class="btn-primary" id="generate-btn">🎁 Auslosen & Links generieren</button>
+
+    <div id="results" class="results-list" style="display:none;">
+      <h2 style="color: var(--accent-gold); font-size:1.3rem;">Generierte Links</h2>
+      <p style="font-size:0.9rem; color:#d1d8e0;">Kopiere die Links und sende jedem Teilnehmer seinen persönlichen Link.</p>
+      <div id="links-container"></div>
+    </div>
+  </div>
+
+  <script src="SecretSanta.js"></script>
   <script>
     // Schneefall-Effekt erzeugen
     function createSnow() {
