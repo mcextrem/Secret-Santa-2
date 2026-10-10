@@ -1,0 +1,193 @@
+:root {
+  --bg-color: #12091f;
+  --card-bg: #221035;
+  --primary-red: #c0392b;
+  --accent-gold: #f1c40f;
+  --accent-green: #27ae60;
+  --text-light: #f8f9fa;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-light);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Schneefall Effect */
+.snowflake {
+  position: fixed;
+  top: -10px;
+  color: #fff;
+  font-size: 1em;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(105vh);
+  }
+}
+
+.container {
+  width: 90%;
+  max-width: 650px;
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(241, 196, 15, 0.2);
+  border: 2px solid var(--accent-gold);
+  text-align: center;
+  z-index: 10;
+  margin: 20px 0;
+}
+
+h1 {
+  color: var(--accent-gold);
+  margin-bottom: 10px;
+}
+
+p.subtitle {
+  color: #d1d8e0;
+  font-size: 1.05rem;
+  margin-bottom: 25px;
+}
+
+textarea {
+  width: 100%;
+  height: 150px;
+  background: #1a0829;
+  border: 1px solid var(--accent-gold);
+  border-radius: 8px;
+  color: #fff;
+  padding: 12px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+button.btn-primary {
+  background: linear-gradient(135deg, var(--primary-red), #e74c3c);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(192, 57, 43, 0.4);
+}
+
+button.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(192, 57, 43, 0.6);
+}
+
+.results-list {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.result-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.result-name {
+  font-weight: bold;
+  color: var(--accent-gold);
+  min-width: 120px;
+}
+
+.btn-copy {
+  background: var(--accent-green);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.btn-copy:hover {
+  background: #27ae60dd;
+}
+
+/* Interaktives Adventskalender Türchen */
+.door-container {
+  perspective: 1000px;
+  width: 200px;
+  height: 200px;
+  margin: 30px auto;
+  cursor: pointer;
+}
+
+.door {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s ease-in-out;
+}
+
+.door.open {
+  transform: rotateY(-140deg);
+}
+
+.door-front, .door-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 3px solid var(--accent-gold);
+}
+
+.door-front {
+  background: linear-gradient(135deg, #a71d2a, #680e17);
+  color: var(--accent-gold);
+  font-size: 3rem;
+  font-weight: bold;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.door-back {
+  background: var(--accent-gold);
+  color: #12091f;
+  transform: rotateY(180deg);
+}
+
+.receiver-box {
+  margin-top: 20px;
+  font-size: 1.8rem;
+  color: var(--accent-gold);
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.receiver-box.visible {
+  opacity: 1;
+}
