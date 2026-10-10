@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dein Adventskalender-Wichtelpartner 🎅</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>🎅 Dein Adventskalender-Wichtel</h1>
+    <p class="subtitle" id="greeting">Willkommen! Öffne dein Türchen, um zu erfahren, für wen du dieses Jahr einen Adventskalender erstellst.</p>
+
+    <div class="door-container" id="door-container">
+      <div class="door" id="door">
+        <div class="door-front">
+          <span>🎄</span>
+          <span style="font-size: 1rem; margin-top: 8px;">Klick mich</span>
+        </div>
+        <div class="door-back">
+          <span>🎁</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="receiver-box" id="receiver-box">
+      <span style="font-size: 1rem; color: #d1d8e0; display: block;">Du bastelst den Adventskalender für:</span>
+      <span id="target-name" style="font-size: 2.2rem;">...</span>
+    </div>
+  </div>
+
+  <script src="SecretSanta.js"></script>
+  <script>
+    function createSnow() {
+      for (let i = 0; i < 30; i++) {
+        const flake = document.createElement('div');
+        flake.className = 'snowflake';
+        flake.innerHTML = '❄';
+        flake.style.left = Math.random() * 100 + 'vw';
+        flake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        flake.style.opacity = Math.random();
+        flake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+        document.body.appendChild(flake);
+      }
+    }
+    createSnow();
+
+    async function init() {
+      const hash = window.location.hash;
+      if (!hash || hash.length < 10) {
+        document.getElementById('greeting').innerText = "Ungültiger oder fehlender Wichtel-Link.";
+        document.getElementById('door-container').style.display = 'none';
+        return;
+      }
+
+      try {
+        const data = await decryptPairing(hash);
+        const giver = data.g;
+        const receiver = data.r;
+
+        document.getElementById('greeting').innerHTML = `Hallo <strong>${giver}</strong>! ❄️<br>Klicke unten auf das Adventskalender-Türchen!`;
+
+        const doorContainer = document.getElementById('door-container');
+        const door = document.getElementById('door');
+        const receiverBox = document.getElementById('receiver-box');
+        const targetName = document.getElementById('target-name');
+
+        doorContainer.addEventListener('click', () => {
+          if (!door.classList.contains('open')) {
+            door.classList.add('open');
+            setTimeout(() => {
+              targetName.innerText = receiver;
+              receiverBox.classList.add('visible');
+            }, 400);
+          }
+        });
+
+      } catch (err) {
+        document.getElementById('greeting').innerText = "Der Link konnte nicht entschlüsselt werden oder ist beschädigt.";
+        document.getElementById('door-container').style.display = 'none';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
